@@ -18,11 +18,11 @@ const main = async () => {
     await orm.getMigrator().up();
     const app = express();
     let RedisStore = connectRedis(session);
-    let redisClient = createClient()
-
+    let redisClient = createClient();
+    
     app.use(cors({
-        origin: 'http://localhost:3000',
-        credentials: true
+        origin: ['http://localhost:3000', 'https://studio.apollographql.com'],
+        credentials: true,
     }))
     app.use(
         session({
@@ -40,6 +40,7 @@ const main = async () => {
         })
     )
     
+
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
             resolvers: [HelloResolver, PostResolver, UserResolver],

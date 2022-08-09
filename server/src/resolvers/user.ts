@@ -3,7 +3,7 @@ import "reflect-metadata";
 import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } from "type-graphql";
 import { User } from '../entities/User';
 import { hash, verify } from 'argon2';
-
+import { EntityManager } from '@mikro-orm/postgresql';
 
 @InputType() 
 class UsernamePasswordInput {
@@ -62,13 +62,22 @@ export class UserResolver {
             }
         }
         const hashedPassword = await hash(options.password)
-        const user = em.fork({}).create(User, {
-            username: options.username, 
-            password: hashedPassword 
-        });
+        let user;
         try {
-            await em.persistAndFlush(user);
+            console.log('adem')
+           const result = await (em as EntityManager)
+            .createQueryBuilder(User)
+            .getKnexQuery()
+            .insert({
+                username: options.username, 
+                password: hashedPassword,
+                created_at: new Date(),
+                updated_at: new Date(),
+            }).returning("*");
+            console.log(result)
+            user = result[0];
         } catch (error) {
+            console.log('adem', error)
             return {
                 errors: [
                     {field: error.code, message: error.detail}
