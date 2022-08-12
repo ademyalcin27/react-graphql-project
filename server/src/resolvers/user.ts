@@ -4,6 +4,7 @@ import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } fro
 import { User } from '../entities/User';
 import { hash, verify } from 'argon2';
 import { EntityManager } from '@mikro-orm/postgresql';
+import { COOKIE_NAME } from 'src/constants';
 
 @InputType() 
 class UsernamePasswordInput {
@@ -111,5 +112,19 @@ export class UserResolver {
         req.session.userId = user.id
 
         return { user };
+    }
+
+    @Mutation(() => Boolean)
+    logout(@Ctx() {req, res}:MyContext) {
+        new Promise(resolve =>
+            req.session.destroy( err => {
+                res.clearCookie(COOKIE_NAME)
+                if(err) {
+                    console.log(err)
+                    resolve(false);
+                    return;
+                }
+                resolve(true)
+        }));
     }
 }
